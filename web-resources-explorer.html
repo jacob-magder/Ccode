@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Development Resources Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        .stats {
+            padding: 15px 30px;
+            background: #e7f3ff;
+            border-bottom: 1px solid #bee5eb;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .category {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #dee2e6;
+            transition: all 0.3s;
+        }
+
+        .category:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .category.hidden {
+            display: none;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .category-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #343a40;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            font-size: 1.5em;
+        }
+
+        .category-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+
+        .category-header.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .resources-list {
+            list-style: none;
+            transition: all 0.3s;
+        }
+
+        .resources-list.collapsed {
+            display: none;
+        }
+
+        .resource-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .resource-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .resource-item.hidden {
+            display: none;
+        }
+
+        .resource-name {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #343a40;
+            margin-bottom: 5px;
+        }
+
+        .resource-url {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+            word-break: break-all;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .resource-url:hover {
+            text-decoration: underline;
+        }
+
+        .resource-description {
+            color: #6c757d;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .resource-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #e7f3ff;
+            color: #004085;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Web Development Resources Explorer</h1>
+            <p class="subtitle">Your comprehensive guide to web standards, documentation, and tools</p>
+        </header>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search resources by name, URL, or description...">
+            </div>
+            <div class="filter-buttons" id="filterButtons"></div>
+            <button class="export-btn" onclick="exportJSON()">📥 Export JSON</button>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="content" id="content"></div>
+
+        <footer>
+            <p>Created with ❤️ for web developers | Last updated: <span id="lastUpdated"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        const webResources = {
+            "documentation": {
+                "name": "Documentation Sites",
+                "icon": "📚",
+                "resources": [
+                    {
+                        "name": "MDN Web Docs",
+                        "url": "https://developer.mozilla.org/",
+                        "description": "The most comprehensive and authoritative web documentation. Maintained by Mozilla and the community.",
+                        "tags": ["HTML", "CSS", "JavaScript", "API", "Reference"]
+                    },
+                    {
+                        "name": "web.dev by Google",
+                        "url": "https://web.dev/",
+                        "description": "Modern web development guidance and best practices from Google Chrome team.",
+                        "tags": ["Best Practices", "Performance", "Guides", "SEO"]
+                    },
+                    {
+                        "name": "Can I Use",
+                        "url": "https://caniuse.com/",
+                        "description": "Browser support tables for modern web technologies.",
+                        "tags": ["Compatibility", "Browser Support", "Features"]
+                    },
+                    {
+                        "name": "DevDocs",
+                        "url": "https://devdocs.io/",
+                        "description": "Combines multiple API documentations in a fast, searchable interface.",
+                        "tags": ["API", "Reference", "Multi-platform"]
+                    },
+                    {
+                        "name": "HTML Reference",
+                        "url": "https://htmlreference.io/",
+                        "description": "A free visual guide to HTML with code examples.",
+                        "tags": ["HTML", "Visual", "Examples"]
+                    },
+                    {
+                        "name": "CSS Reference",
+                        "url": "https://cssreference.io/",
+                        "description": "A free visual guide to CSS with code examples.",
+                        "tags": ["CSS", "Visual", "Examples"]
+                    }
+                ]
+            },
+            "standards": {
+                "name": "Standards Bodies & Specifications",
+                "icon": "📜",
+                "resources": [
+                    {
+                        "name": "WHATWG",
+                        "url": "https://whatwg.org/",
+                        "description": "Web Hypertext Application Technology Working Group - Living standards for HTML, DOM, and more.",
+                        "tags": ["HTML", "DOM", "Standards", "Living Standard"]
+                    },
+                    {
+                        "name": "W3C",
+                        "url": "https://www.w3.org/",
+                        "description": "World Wide Web Consortium - International standards organization for the web.",
+                        "tags": ["Standards", "CSS", "SVG", "Accessibility"]
+                    },
+                    {
+                        "name": "HTML Living Standard",
+                        "url": "https://html.spec.whatwg.org/",
+                        "description": "The official HTML specification maintained by WHATWG.",
+                        "tags": ["HTML", "Specification"]
+                    },
+                    {
+                        "name": "CSS Specifications",
+                        "url": "https://www.w3.org/Style/CSS/specs.en.html",
+                        "description": "Complete list of CSS specifications from W3C.",
+                        "tags": ["CSS", "Specification"]
+                    },
+                    {
+                        "name": "ECMAScript Specification",
+                        "url": "https://tc39.es/ecma262/",
+                        "description": "The official ECMAScript (JavaScript) language specification.",
+                        "tags": ["JavaScript", "ECMAScript", "Specification"]
+                    },
+                    {
+                        "name": "SVG Specification",
+                        "url": "https://www.w3.org/TR/SVG2/",
+                        "description": "Scalable Vector Graphics specification from W3C.",
+                        "tags": ["SVG", "Graphics", "Specification"]
+                    },
+                    {
+                        "name": "MathML Specification",
+                        "url": "https://www.w3.org/TR/MathML3/",
+                        "description": "Mathematical Markup Language specification.",
+                        "tags": ["MathML", "Mathematics", "Specification"]
+                    },
+                    {
+                        "name": "DOM Standard",
+                        "url": "https://dom.spec.whatwg.org/",
+                        "description": "Document Object Model specification by WHATWG.",
+                        "tags": ["DOM", "API", "Specification"]
+                    },
+                    {
+                        "name": "Fetch Standard",
+                        "url": "https://fetch.spec.whatwg.org/",
+                        "description": "Specification for the Fetch API.",
+                        "tags": ["Fetch", "API", "Specification"]
+                    },
+                    {
+                        "name": "Web APIs",
+                        "url": "https://www.w3.org/TR/?tag=webapi",
+                        "description": "Collection of Web API specifications from W3C.",
+                        "tags": ["API", "Specification", "Web APIs"]
+                    }
+                ]
+            },
+            "browserEngines": {
+                "name": "Browser Engines & Source Code",
+                "icon": "🔧",
+                "resources": [
+                    {
+                        "name": "Chromium",
+                        "url": "https://chromium.googlesource.com/chromium/src",
+                        "description": "Open-source browser project behind Chrome, Edge, Opera, and many others.",
+                        "tags": ["Browser", "Open Source", "Blink", "V8"]
+                    },
+                    {
+                        "name": "WebKit",
+                        "url": "https://webkit.org/",
+                        "description": "Browser engine powering Safari and other browsers.",
+                        "tags": ["Browser", "Safari", "Open Source"]
+                    },
+                    {
+                        "name": "Gecko (Firefox)",
+                        "url": "https://firefox-source-docs.mozilla.org/",
+                        "description": "Mozilla's browser engine powering Firefox.",
+                        "tags": ["Browser", "Firefox", "Mozilla", "Open Source"]
+                    },
+                    {
+                        "name": "Blink",
+                        "url": "https://www.chromium.org/blink/",
+                        "description": "Chromium's rendering engine (fork of WebKit).",
+                        "tags": ["Rendering Engine", "Chromium"]
+                    },
+                    {
+                        "name": "V8 Engine",
+                        "url": "https://v8.dev/",
+                        "description": "Google's open-source JavaScript and WebAssembly engine.",
+                        "tags": ["JavaScript", "Engine", "Performance"]
+                    },
+                    {
+                        "name": "SpiderMonkey",
+                        "url": "https://spidermonkey.dev/",
+                        "description": "Mozilla's JavaScript engine used in Firefox.",
+                        "tags": ["JavaScript", "Engine", "Firefox"]
+                    },
+                    {
+                        "name": "JavaScriptCore",
+                        "url": "https://developer.apple.com/documentation/javascriptcore",
+                        "description": "WebKit's JavaScript engine used in Safari.",
+                        "tags": ["JavaScript", "Engine", "Safari"]
+                    }
+                ]
+            },
+            "github": {
+                "name": "Important GitHub Repositories",
+                "icon": "🐙",
+                "resources": [
+                    {
+                        "name": "TC39 Proposals",
+                        "url": "https://github.com/tc39/proposals",
+                        "description": "Active ECMAScript proposals and their progress.",
+                        "tags": ["JavaScript", "ECMAScript", "Proposals"]
+                    },
+                    {
+                        "name": "Web Platform Tests",
+                        "url": "https://github.com/web-platform-tests/wpt",
+                        "description": "Cross-browser test suite for web platform specifications.",
+                        "tags": ["Testing", "Standards", "Compatibility"]
+                    },
+                    {
+                        "name": "CSS Working Group",
+                        "url": "https://github.com/w3c/csswg-drafts",
+                        "description": "CSS specification drafts and issues.",
+                        "tags": ["CSS", "Standards", "W3C"]
+                    },
+                    {
+                        "name": "HTML Standard",
+                        "url": "https://github.com/whatwg/html",
+                        "description": "HTML Living Standard repository.",
+                        "tags": ["HTML", "Standards", "WHATWG"]
+                    },
+                    {
+                        "name": "DOM Standard",
+                        "url": "https://github.com/whatwg/dom",
+                        "description": "DOM Standard repository.",
+                        "tags": ["DOM", "Standards", "WHATWG"]
+                    },
+                    {
+                        "name": "Fetch Standard",
+                        "url": "https://github.com/whatwg/fetch",
+                        "description": "Fetch API standard repository.",
+                        "tags": ["Fetch", "API", "WHATWG"]
+                    },
+                    {
+                        "name": "Web Components",
+                        "url": "https://github.com/WICG/webcomponents",
+                        "description": "Web Components specifications and discussions.",
+                        "tags": ["Web Components", "Custom Elements", "Shadow DOM"]
+                    },
+                    {
+                        "name": "MDN Content",
+                        "url": "https://github.com/mdn/content",
+                        "description": "MDN Web Docs content repository.",
+                        "tags": ["Documentation", "MDN", "Open Source"]
+                    },
+                    {
+                        "name": "Babel",
+                        "url": "https://github.com/babel/babel",
+                        "description": "JavaScript compiler for next-gen JavaScript features.",
+                        "tags": ["JavaScript", "Transpiler", "ES6+"]
+                    },
+                    {
+                        "name": "PostCSS",
+                        "url": "https://github.com/postcss/postcss",
+                        "description": "Tool for transforming CSS with JavaScript plugins.",
+                        "tags": ["CSS", "Tooling", "Plugins"]
+                    }
+                ]
+            },
+            "npm": {
+                "name": "NPM Packages & Tools",
+                "icon": "📦",
+                "resources": [
+                    {
+                        "name": "html-validate",
+                        "url": "https://www.npmjs.com/package/html-validate",
+                        "description": "Offline HTML validator with modern standards support.",
+                        "tags": ["HTML", "Validation", "Linting"]
+                    },
+                    {
+                        "name": "stylelint",
+                        "url": "https://www.npmjs.com/package/stylelint",
+                        "description": "Mighty CSS linter that helps avoid errors and enforce conventions.",
+                        "tags": ["CSS", "Linting", "Standards"]
+                    },
+                    {
+                        "name": "eslint",
+                        "url": "https://www.npmjs.com/package/eslint",
+                        "description": "Pluggable JavaScript linter for identifying and fixing problems.",
+                        "tags": ["JavaScript", "Linting", "Code Quality"]
+                    },
+                    {
+                        "name": "prettier",
+                        "url": "https://www.npmjs.com/package/prettier",
+                        "description": "Opinionated code formatter for web languages.",
+                        "tags": ["Formatting", "Code Style", "Multi-language"]
+                    },
+                    {
+                        "name": "typescript",
+                        "url": "https://www.npmjs.com/package/typescript",
+                        "description": "Superset of JavaScript with static typing.",
+                        "tags": ["TypeScript", "JavaScript", "Type Safety"]
+                    },
+                    {
+                        "name": "postcss",
+                        "url": "https://www.npmjs.com/package/postcss",
+                        "description": "Tool for transforming CSS with JavaScript.",
+                        "tags": ["CSS", "Transformation", "Plugins"]
+                    },
+                    {
+                        "name": "autoprefixer",
+                        "url": "https://www.npmjs.com/package/autoprefixer",
+                        "description": "Adds vendor prefixes to CSS automatically.",
+                        "tags": ["CSS", "Prefixes", "Compatibility"]
+                    },
+                    {
+                        "name": "webpack",
+                        "url": "https://www.npmjs.com/package/webpack",
+                        "description": "Module bundler for JavaScript applications.",
+                        "tags": ["Bundler", "Build Tool", "JavaScript"]
+                    },
+                    {
+                        "name": "vite",
+                        "url": "https://www.npmjs.com/package/vite",
+                        "description": "Next-generation frontend build tool.",
+                        "tags": ["Build Tool", "Fast", "Modern"]
+                    },
+                    {
+                        "name": "core-js",
+                        "url": "https://www.npmjs.com/package/core-js",
+                        "description": "Modular standard library for JavaScript with polyfills.",
+                        "tags": ["Polyfills", "JavaScript", "Standards"]
+                    },
+                    {
+                        "name": "browserslist",
+                        "url": "https://www.npmjs.com/package/browserslist",
+                        "description": "Share target browsers between different frontend tools.",
+                        "tags": ["Browser Support", "Configuration", "Compatibility"]
+                    },
+                    {
+                        "name": "axe-core",
+                        "url": "https://www.npmjs.com/package/axe-core",
+                        "description": "Accessibility testing engine for automated testing.",
+                        "tags": ["Accessibility", "Testing", "A11y"]
+                    }
+                ]
+            },
+            "validators": {
+                "name": "Validators & Testing Tools",
+                "icon": "✅",
+                "resources": [
+                    {
+                        "name": "W3C HTML Validator",
+                        "url": "https://validator.w3.org/",
+                        "description": "Official W3C markup validation service.",
+                        "tags": ["HTML", "Validation", "W3C"]
+                    },
+                    {
+                        "name": "W3C CSS Validator",
+                        "url": "https://jigsaw.w3.org/css-validator/",
+                        "description": "Official W3C CSS validation service.",
+                        "tags": ["CSS", "Validation", "W3C"]
+                    },
+                    {
+                        "name": "W3C Link Checker",
+                        "url": "https://validator.w3.org/checklink",
+                        "description": "Checks for broken links in web pages.",
+                        "tags": ["Links", "Validation", "Testing"]
+                    },
+                    {
+                        "name": "WAVE",
+                        "url": "https://wave.webaim.org/",
+                        "description": "Web accessibility evaluation tool.",
+                        "tags": ["Accessibility", "A11y", "Testing"]
+                    },
+                    {
+                        "name": "Lighthouse",
+                        "url": "https://developers.google.com/web/tools/lighthouse",
+                        "description": "Automated tool for improving web page quality.",
+                        "tags": ["Performance", "SEO", "Accessibility", "Testing"]
+                    },
+                    {
+                        "name": "PageSpeed Insights",
+                        "url": "https://pagespeed.web.dev/",
+                        "description": "Google's tool for analyzing page performance.",
+                        "tags": ["Performance", "Speed", "Testing"]
+                    },
+                    {
+                        "name": "SVG Validator",
+                        "url": "https://validator.w3.org/",
+                        "description": "Validates SVG documents against W3C standards.",
+                        "tags": ["SVG", "Validation", "Graphics"]
+                    }
+                ]
+            },
+            "learning": {
+                "name": "Learning Resources",
+                "icon": "🎓",
+                "resources": [
+                    {
+                        "name": "JavaScript.info",
+                        "url": "https://javascript.info/",
+                        "description": "Modern JavaScript tutorial from basics to advanced topics.",
+                        "tags": ["JavaScript", "Tutorial", "Learning"]
+                    },
+                    {
+                        "name": "CSS-Tricks",
+                        "url": "https://css-tricks.com/",
+                        "description": "Tips, tricks, and techniques on using CSS.",
+                        "tags": ["CSS", "Tutorial", "Tips"]
+                    },
+                    {
+                        "name": "A11Y Project",
+                        "url": "https://www.a11yproject.com/",
+                        "description": "Community-driven effort to make web accessibility easier.",
+                        "tags": ["Accessibility", "A11y", "Best Practices"]
+                    },
+                    {
+                        "name": "Smashing Magazine",
+                        "url": "https://www.smashingmagazine.com/",
+                        "description": "Professional resource for web designers and developers.",
+                        "tags": ["Articles", "Design", "Development"]
+                    },
+                    {
+                        "name": "freeCodeCamp",
+                        "url": "https://www.freecodecamp.org/",
+                        "description": "Learn to code for free with hands-on projects.",
+                        "tags": ["Learning", "Tutorial", "Free", "Projects"]
+                    },
+                    {
+                        "name": "Eloquent JavaScript",
+                        "url": "https://eloquentjavascript.net/",
+                        "description": "Free book about JavaScript, programming, and digital wonders.",
+                        "tags": ["JavaScript", "Book", "Learning"]
+                    },
+                    {
+                        "name": "You Don't Know JS",
+                        "url": "https://github.com/getify/You-Dont-Know-JS",
+                        "description": "Deep dive into JavaScript core mechanisms.",
+                        "tags": ["JavaScript", "Book", "Advanced"]
+                    }
+                ]
+            },
+            "performance": {
+                "name": "Performance & Optimization",
+                "icon": "⚡",
+                "resources": [
+                    {
+                        "name": "WebPageTest",
+                        "url": "https://www.webpagetest.org/",
+                        "description": "Website performance and optimization test.",
+                        "tags": ["Performance", "Testing", "Optimization"]
+                    },
+                    {
+                        "name": "Chrome DevTools",
+                        "url": "https://developer.chrome.com/docs/devtools/",
+                        "description": "Official Chrome DevTools documentation.",
+                        "tags": ["DevTools", "Debugging", "Chrome"]
+                    },
+                    {
+                        "name": "Firefox Developer Tools",
+                        "url": "https://firefox-dev.tools/",
+                        "description": "Firefox browser developer tools documentation.",
+                        "tags": ["DevTools", "Debugging", "Firefox"]
+                    },
+                    {
+                        "name": "Bundlephobia",
+                        "url": "https://bundlephobia.com/",
+                        "description": "Find the cost of adding npm packages to your bundle.",
+                        "tags": ["NPM", "Bundle Size", "Performance"]
+                    },
+                    {
+                        "name": "Image Optimization",
+                        "url": "https://web.dev/fast/#optimize-your-images",
+                        "description": "Comprehensive guide to image optimization.",
+                        "tags": ["Images", "Optimization", "Performance"]
+                    }
+                ]
+            },
+            "communities": {
+                "name": "Communities & Forums",
+                "icon": "👥",
+                "resources": [
+                    {
+                        "name": "Stack Overflow",
+                        "url": "https://stackoverflow.com/",
+                        "description": "Q&A platform for programmers.",
+                        "tags": ["Community", "Q&A", "Help"]
+                    },
+                    {
+                        "name": "Dev.to",
+                        "url": "https://dev.to/",
+                        "description": "Community of software developers sharing knowledge.",
+                        "tags": ["Community", "Articles", "Discussion"]
+                    },
+                    {
+                        "name": "CSS Working Group Discussions",
+                        "url": "https://github.com/w3c/csswg-drafts/issues",
+                        "description": "Public discussions about CSS specifications.",
+                        "tags": ["CSS", "Standards", "Discussion"]
+                    },
+                    {
+                        "name": "WHATWG Discussions",
+                        "url": "https://github.com/whatwg",
+                        "description": "WHATWG repositories and discussions.",
+                        "tags": ["Standards", "Discussion", "HTML"]
+                    }
+                ]
+            },
+            "reference": {
+                "name": "Quick Reference & Cheatsheets",
+                "icon": "📋",
+                "resources": [
+                    {
+                        "name": "HTML Elements Reference",
+                        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element",
+                        "description": "Complete list of HTML elements with documentation.",
+                        "tags": ["HTML", "Reference", "Elements"]
+                    },
+                    {
+                        "name": "CSS Properties Reference",
+                        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference",
+                        "description": "Alphabetical index of all CSS properties.",
+                        "tags": ["CSS", "Reference", "Properties"]
+                    },
+                    {
+                        "name": "JavaScript Reference",
+                        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference",
+                        "description": "Complete JavaScript language reference.",
+                        "tags": ["JavaScript", "Reference", "API"]
+                    },
+                    {
+                        "name": "SVG Element Reference",
+                        "url": "https://developer.mozilla.org/en-US/docs/Web/SVG/Element",
+                        "description": "Complete list of SVG elements.",
+                        "tags": ["SVG", "Reference", "Graphics"]
+                    },
+                    {
+                        "name": "Web APIs Reference",
+                        "url": "https://developer.mozilla.org/en-US/docs/Web/API",
+                        "description": "Complete list of Web APIs available in browsers.",
+                        "tags": ["API", "Reference", "Browser"]
+                    },
+                    {
+                        "name": "HTTP Status Codes",
+                        "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status",
+                        "description": "Reference for all HTTP response status codes.",
+                        "tags": ["HTTP", "Reference", "Status Codes"]
+                    }
+                ]
+            }
+        };
+
+        let activeFilters = [];
+        let currentSearchTerm = '';
+
+        function init() {
+            renderFilterButtons();
+            renderContent();
+            updateStats();
+            setupSearch();
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+        }
+
+        function renderFilterButtons() {
+            const container = document.getElementById('filterButtons');
+            const categories = Object.keys(webResources);
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'filter-btn active';
+            allBtn.textContent = 'All';
+            allBtn.onclick = () => filterByCategory('all');
+            container.appendChild(allBtn);
+
+            categories.forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.textContent = webResources[key].name;
+                btn.onclick = () => filterByCategory(key);
+                container.appendChild(btn);
+            });
+        }
+
+        function renderContent() {
+            const container = document.getElementById('content');
+            container.innerHTML = '';
+
+            Object.keys(webResources).forEach(categoryKey => {
+                const category = webResources[categoryKey];
+                const categoryDiv = createCategoryElement(categoryKey, category);
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        function createCategoryElement(key, category) {
+            const div = document.createElement('div');
+            div.className = 'category';
+            div.dataset.category = key;
+
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.onclick = () => toggleCategory(key);
+
+            header.innerHTML = `
+                <div class="category-title">
+                    <span class="category-icon">${category.icon}</span>
+                    <span>${category.name}</span>
+                </div>
+                <div>
+                    <span class="category-count">${category.resources.length}</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+            `;
+
+            const list = document.createElement('ul');
+            list.className = 'resources-list';
+            list.id = `list-${key}`;
+
+            category.resources.forEach((resource, index) => {
+                const item = createResourceElement(resource, key, index);
+                list.appendChild(item);
+            });
+
+            div.appendChild(header);
+            div.appendChild(list);
+
+            return div;
+        }
+
+        function createResourceElement(resource, categoryKey, index) {
+            const li = document.createElement('li');
+            li.className = 'resource-item';
+            li.dataset.category = categoryKey;
+            li.dataset.index = index;
+
+            const tags = resource.tags.map(tag =>
+                `<span class="tag">${tag}</span>`
+            ).join('');
+
+            li.innerHTML = `
+                <div class="resource-name">${resource.name}</div>
+                <a href="${resource.url}" target="_blank" rel="noopener noreferrer" class="resource-url">${resource.url}</a>
+                <div class="resource-description">${resource.description}</div>
+                <div class="resource-tags">${tags}</div>
+            `;
+
+            return li;
+        }
+
+        function toggleCategory(key) {
+            const header = document.querySelector(`[data-category="${key}"] .category-header`);
+            const list = document.getElementById(`list-${key}`);
+
+            header.classList.toggle('collapsed');
+            list.classList.toggle('collapsed');
+        }
+
+        function filterByCategory(categoryKey) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const categories = document.querySelectorAll('.category');
+            categories.forEach(cat => {
+                if (categoryKey === 'all' || cat.dataset.category === categoryKey) {
+                    cat.classList.remove('hidden');
+                } else {
+                    cat.classList.add('hidden');
+                }
+            });
+
+            updateStats();
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                currentSearchTerm = e.target.value.toLowerCase();
+                performSearch();
+            });
+        }
+
+        function performSearch() {
+            const items = document.querySelectorAll('.resource-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const name = item.querySelector('.resource-name').textContent.toLowerCase();
+                const url = item.querySelector('.resource-url').textContent.toLowerCase();
+                const description = item.querySelector('.resource-description').textContent.toLowerCase();
+                const tags = Array.from(item.querySelectorAll('.tag'))
+                    .map(tag => tag.textContent.toLowerCase())
+                    .join(' ');
+
+                const searchContent = `${name} ${url} ${description} ${tags}`;
+                const matches = searchContent.includes(currentSearchTerm);
+
+                if (matches) {
+                    item.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            // Hide empty categories
+            Object.keys(webResources).forEach(key => {
+                const category = document.querySelector(`[data-category="${key}"]`);
+                const visibleItems = category.querySelectorAll('.resource-item:not(.hidden)');
+
+                if (visibleItems.length === 0 && currentSearchTerm) {
+                    category.classList.add('hidden');
+                } else {
+                    category.classList.remove('hidden');
+                }
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const totalCategories = Object.keys(webResources).length;
+            let totalResources = 0;
+
+            Object.values(webResources).forEach(cat => {
+                totalResources += cat.resources.length;
+            });
+
+            const visibleCategories = document.querySelectorAll('.category:not(.hidden)').length;
+            const visibleResources = document.querySelectorAll('.resource-item:not(.hidden)').length;
+
+            const statsHTML = `
+                <div class="stat-item">
+                    <span class="stat-label">Categories:</span>
+                    <span class="stat-value">${visibleCategories} / ${totalCategories}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Resources:</span>
+                    <span class="stat-value">${visibleResources} / ${totalResources}</span>
+                </div>
+                ${currentSearchTerm ? `
+                <div class="stat-item">
+                    <span class="stat-label">Search:</span>
+                    <span class="stat-value">"${currentSearchTerm}"</span>
+                </div>
+                ` : ''}
+            `;
+
+            document.getElementById('stats').innerHTML = statsHTML;
+        }
+
+        function exportJSON() {
+            const dataStr = JSON.stringify(webResources, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'web-resources.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
