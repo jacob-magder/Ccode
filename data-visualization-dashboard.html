@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #495057;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            background: none;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab:focus {
+            outline: 2px solid #667eea;
+            outline-offset: -2px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #e7f3ff;
+        }
+
+        .upload-section.dragover {
+            background: #e7f3ff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-btn:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #343a40;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+
+        .filter-input,
+        .filter-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .tree-container {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 25px;
+            overflow: auto;
+            max-height: 600px;
+        }
+
+        .tree-node {
+            margin-left: 20px;
+            position: relative;
+        }
+
+        .tree-node::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 0;
+            bottom: 50%;
+            width: 10px;
+            border-left: 2px solid #dee2e6;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tree-node:last-child::before {
+            border-left: none;
+        }
+
+        .tree-label {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tree-label:hover {
+            background: #e7f3ff;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .tree-label:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .tree-label.expandable::before {
+            content: '▶';
+            margin-right: 8px;
+            transition: transform 0.3s;
+        }
+
+        .tree-label.expandable.expanded::before {
+            transform: rotate(90deg);
+        }
+
+        .tree-children {
+            display: none;
+        }
+
+        .tree-children.expanded {
+            display: block;
+        }
+
+        .node-name {
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        .node-value {
+            color: #667eea;
+            margin-left: 8px;
+        }
+
+        .node-type {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-left: 8px;
+            font-style: italic;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #c3e6cb;
+            margin-bottom: 20px;
+        }
+
+        .clear-btn {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+
+        .clear-btn:hover {
+            background: #c82333;
+        }
+
+        .clear-btn:focus {
+            outline: 2px solid #dc3545;
+            outline-offset: 2px;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        .export-btn:focus {
+            outline: 2px solid #28a745;
+            outline-offset: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .no-data-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Accessibility improvements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Focus styles for better accessibility */
+        *:focus-visible {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .upload-section {
+                border-width: 3px;
+            }
+
+            .tree-label {
+                border-width: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Data Visualization Dashboard</h1>
+            <p class="subtitle">Upload CSV, JSON, XML, or RDF files to visualize your data</p>
+        </header>
+
+        <div class="tabs" role="tablist" aria-label="Dashboard sections">
+            <button class="tab active" 
+                    role="tab" 
+                    aria-selected="true" 
+                    aria-controls="csv-panel" 
+                    id="csv-tab"
+                    onclick="switchTab('csv')">
+                📈 CSV Charts
+            </button>
+            <button class="tab" 
+                    role="tab" 
+                    aria-selected="false" 
+                    aria-controls="tree-panel" 
+                    id="tree-tab"
+                    onclick="switchTab('tree')">
+                🌳 Tree Visualization
+            </button>
+        </div>
+
+        <div id="csv-panel" class="tab-content active" role="tabpanel" aria-labelledby="csv-tab">
+            <div class="upload-section" 
+                 id="csv-upload"
+                 role="region"
+                 aria-label="CSV file upload area">
+                <h2>Upload CSV File</h2>
+                <p style="margin: 15px 0; color: #6c757d;">
+                    Drop your CSV file here or click to browse
+                </p>
+                <label for="csv-file-input" class="upload-btn">
+                    Choose CSV File
+                </label>
+                <input type="file" 
+                       id="csv-file-input" 
+                       class="file-input" 
+                       accept=".csv"
+                       aria-label="Choose CSV file to upload">
+            </div>
+
+            <div id="csv-content">
+                <div class="no-data">
+                    <div class="no-data-icon">📊</div>
+                    <p>No data loaded. Please upload a CSV file to get started.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tree-panel" class="tab-content" role="tabpanel" aria-labelledby="tree-tab">
+            <div class="upload-section" 
+                 id="tree-upload"
+                 role="region"
+                 aria-label="Tree data file upload area">
+                <h2>Upload JSON, XML, or RDF File</h2>
+                <p style="margin: 15px 0; color: #6c757d;">
+                    Drop your JSON, XML, or RDF file here or click to browse
+                </p>
+                <label for="tree-file-input" class="upload-btn">
+                    Choose File
+                </label>
+                <input type="file" 
+                       id="tree-file-input" 
+                       class="file-input" 
+                       accept=".json,.xml,.rdf,.ttl"
+                       aria-label="Choose JSON, XML, or RDF file to upload">
+            </div>
+
+            <div id="tree-content">
+                <div class="no-data">
+                    <div class="no-data-icon">🌳</div>
+                    <p>No data loaded. Please upload a JSON, XML, or RDF file to visualize the structure.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let csvData = null;
+        let treeData = null;
+        let charts = [];
+        let currentFilter = '';
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).setAttribute('aria-selected', 'true');
+
+            // Update content panels
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+        }
+
+        // CSV File handling
+        const csvUploadArea = document.getElementById('csv-upload');
+        const csvFileInput = document.getElementById('csv-file-input');
+
+        csvFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleCSVFile(file);
+            }
+        });
+
+        // Drag and drop for CSV
+        csvUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            csvUploadArea.classList.add('dragover');
+        });
+
+        csvUploadArea.addEventListener('dragleave', () => {
+            csvUploadArea.classList.remove('dragover');
+        });
+
+        csvUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            csvUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                handleCSVFile(file);
+            }
+        });
+
+        // Parse CSV
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length < 2) return null;
+
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                data.push(row);
+            }
+
+            return { headers, data };
+        }
+
+        // Handle CSV file
+        function handleCSVFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = parseCSV(e.target.result);
+                    if (!parsed) {
+                        showError('Invalid CSV format');
+                        return;
+                    }
+                    csvData = parsed;
+                    displayCSVData();
+                    showSuccess('CSV file loaded successfully!');
+                } catch (error) {
+                    showError('Error parsing CSV: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Display CSV data
+        function displayCSVData() {
+            const content = document.getElementById('csv-content');
+            
+            // Clear existing content
+            content.innerHTML = '';
+
+            // Add controls
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+            controls.innerHTML = `
+                <button class="export-btn" onclick="exportData('csv')" aria-label="Export CSV data">
+                    Export Data
+                </button>
+                <button class="clear-btn" onclick="clearCSVData()" aria-label="Clear CSV data">
+                    Clear Data
+                </button>
+            `;
+            content.appendChild(controls);
+
+            // Display statistics
+            displayStats();
+
+            // Display filters
+            displayFilters();
+
+            // Display charts
+            displayCharts();
+
+            // Display data table
+            displayDataTable();
+        }
+
+        // Display statistics
+        function displayStats() {
+            if (!csvData) return;
+
+            const content = document.getElementById('csv-content');
+            const statsGrid = document.createElement('div');
+            statsGrid.className = 'stats-grid';
+            statsGrid.setAttribute('role', 'region');
+            statsGrid.setAttribute('aria-label', 'Summary statistics');
+
+            // Calculate statistics
+            const totalRows = csvData.data.length;
+            const totalColumns = csvData.headers.length;
+            
+            // Get numeric columns
+            const numericColumns = csvData.headers.filter(header => {
+                return csvData.data.every(row => !isNaN(parseFloat(row[header])));
+            });
+
+            // Calculate average for first numeric column
+            let avgValue = 'N/A';
+            if (numericColumns.length > 0) {
+                const values = csvData.data.map(row => parseFloat(row[numericColumns[0]]));
+                avgValue = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2);
+            }
+
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Rows</div>
+                    <div class="stat-value">${totalRows}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Columns</div>
+                    <div class="stat-value">${totalColumns}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Numeric Columns</div>
+                    <div class="stat-value">${numericColumns.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Average (${numericColumns[0] || 'N/A'})</div>
+                    <div class="stat-value">${avgValue}</div>
+                </div>
+            `;
+
+            content.appendChild(statsGrid);
+        }
+
+        // Display filters
+        function displayFilters() {
+            if (!csvData) return;
+
+            const content = document.getElementById('csv-content');
+            const filterSection = document.createElement('div');
+            filterSection.className = 'filter-section';
+            filterSection.setAttribute('role', 'region');
+            filterSection.setAttribute('aria-label', 'Data filters');
+
+            const firstColumn = csvData.headers[0];
+            const uniqueValues = [...new Set(csvData.data.map(row => row[firstColumn]))];
+
+            filterSection.innerHTML = `
+                <div class="filter-group">
+                    <label for="column-filter" class="filter-label">
+                        Filter by ${firstColumn}
+                    </label>
+                    <select id="column-filter" 
+                            class="filter-select" 
+                            onchange="applyFilter(this.value)"
+                            aria-label="Filter data by ${firstColumn}">
+                        <option value="">All</option>
+                        ${uniqueValues.map(val => `<option value="${val}">${val}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="search-filter" class="filter-label">
+                        Search
+                    </label>
+                    <input type="text" 
+                           id="search-filter" 
+                           class="filter-input" 
+                           placeholder="Search in all columns..."
+                           oninput="applySearchFilter(this.value)"
+                           aria-label="Search in data">
+                </div>
+            `;
+
+            content.appendChild(filterSection);
+        }
+
+        // Apply filter
+        function applyFilter(value) {
+            currentFilter = value;
+            displayCharts();
+            displayDataTable();
+        }
+
+        // Apply search filter
+        function applySearchFilter(searchTerm) {
+            const rows = document.querySelectorAll('.data-table tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm.toLowerCase())) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Get filtered data
+        function getFilteredData() {
+            if (!csvData) return null;
+            if (!currentFilter) return csvData.data;
+
+            const firstColumn = csvData.headers[0];
+            return csvData.data.filter(row => row[firstColumn] === currentFilter);
+        }
+
+        // Display charts
+        function displayCharts() {
+            if (!csvData) return;
+
+            // Clear existing charts
+            charts = [];
+
+            const content = document.getElementById('csv-content');
+            let chartsContainer = content.querySelector('.charts-container');
+            
+            if (chartsContainer) {
+                chartsContainer.remove();
+            }
+
+            chartsContainer = document.createElement('div');
+            chartsContainer.className = 'charts-container';
+            chartsContainer.setAttribute('role', 'region');
+            chartsContainer.setAttribute('aria-label', 'Data visualizations');
+
+            const filteredData = getFilteredData();
+            const numericColumns = csvData.headers.filter(header => {
+                return filteredData.every(row => !isNaN(parseFloat(row[header])));
+            });
+
+            // Append charts container to content first
+            content.appendChild(chartsContainer);
+
+            // Create bar chart
+            if (numericColumns.length > 0 && filteredData.length > 0) {
+                const barChartCard = createChartCard('Bar Chart', 'bar-chart');
+                chartsContainer.appendChild(barChartCard);
+
+                const labels = filteredData.map((row, i) => row[csvData.headers[0]] || `Row ${i + 1}`);
+                const values = filteredData.map(row => parseFloat(row[numericColumns[0]]) || 0);
+
+                createBarChart('bar-chart', labels, values, numericColumns[0]);
+            }
+
+            // Create line chart
+            if (numericColumns.length > 0 && filteredData.length > 1) {
+                const lineChartCard = createChartCard('Line Chart', 'line-chart');
+                chartsContainer.appendChild(lineChartCard);
+
+                const labels = filteredData.map((row, i) => row[csvData.headers[0]] || `Row ${i + 1}`);
+                const values = filteredData.map(row => parseFloat(row[numericColumns[0]]) || 0);
+
+                createLineChart('line-chart', labels, values, numericColumns[0]);
+            }
+
+            // Create pie chart if we have categorical data
+            if (filteredData.length > 0) {
+                const pieChartCard = createChartCard('Distribution Chart', 'pie-chart');
+                chartsContainer.appendChild(pieChartCard);
+
+                const firstColumn = csvData.headers[0];
+                const distribution = {};
+                filteredData.forEach(row => {
+                    const value = row[firstColumn];
+                    distribution[value] = (distribution[value] || 0) + 1;
+                });
+
+                createPieChart('pie-chart', Object.keys(distribution), Object.values(distribution));
+            }
+        }
+
+        // Create SVG bar chart
+        function createBarChart(containerId, labels, values, dataLabel) {
+            const container = document.getElementById(containerId);
+            const width = 450;
+            const height = 300;
+            const padding = 50;
+            const maxValue = Math.max(...values);
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            const barWidth = (width - 2 * padding) / values.length;
+
+            values.forEach((value, i) => {
+                const barHeight = ((height - 2 * padding) * value) / maxValue;
+                const x = padding + i * barWidth;
+                const y = height - padding - barHeight;
+
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', barWidth * 0.8);
+                rect.setAttribute('height', barHeight);
+                rect.setAttribute('fill', 'rgba(102, 126, 234, 0.8)');
+                rect.setAttribute('stroke', 'rgba(102, 126, 234, 1)');
+                rect.setAttribute('stroke-width', '2');
+                svg.appendChild(rect);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x + (barWidth * 0.4));
+                text.setAttribute('y', height - padding + 20);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '10');
+                text.setAttribute('transform', `rotate(-45, ${x + (barWidth * 0.4)}, ${height - padding + 20})`);
+                text.textContent = labels[i].substring(0, 10);
+                svg.appendChild(text);
+
+                const valueText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                valueText.setAttribute('x', x + (barWidth * 0.4));
+                valueText.setAttribute('y', y - 5);
+                valueText.setAttribute('text-anchor', 'middle');
+                valueText.setAttribute('font-size', '12');
+                valueText.textContent = value;
+                svg.appendChild(valueText);
+            });
+
+            container.appendChild(svg);
+        }
+
+        // Create SVG line chart
+        function createLineChart(containerId, labels, values, dataLabel) {
+            const container = document.getElementById(containerId);
+            const width = 450;
+            const height = 300;
+            const padding = 50;
+            const maxValue = Math.max(...values);
+            const minValue = Math.min(...values);
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            const stepX = (width - 2 * padding) / (values.length - 1);
+            const rangeY = maxValue - minValue || 1;
+
+            let pathData = '';
+            values.forEach((value, i) => {
+                const x = padding + i * stepX;
+                const y = height - padding - ((value - minValue) / rangeY) * (height - 2 * padding);
+                
+                if (i === 0) {
+                    pathData += `M ${x} ${y}`;
+                } else {
+                    pathData += ` L ${x} ${y}`;
+                }
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', '4');
+                circle.setAttribute('fill', 'rgba(118, 75, 162, 1)');
+                svg.appendChild(circle);
+            });
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', 'rgba(118, 75, 162, 1)');
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('fill', 'none');
+            svg.insertBefore(path, svg.firstChild);
+
+            container.appendChild(svg);
+        }
+
+        // Create SVG pie chart
+        function createPieChart(containerId, labels, values) {
+            const container = document.getElementById(containerId);
+            const width = 450;
+            const height = 300;
+            const radius = Math.min(width, height) / 3;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', height);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            const total = values.reduce((a, b) => a + b, 0);
+            const colors = [
+                'rgba(102, 126, 234, 0.8)',
+                'rgba(118, 75, 162, 0.8)',
+                'rgba(231, 76, 60, 0.8)',
+                'rgba(46, 204, 113, 0.8)',
+                'rgba(241, 196, 15, 0.8)',
+                'rgba(52, 152, 219, 0.8)'
+            ];
+
+            let currentAngle = -90;
+
+            values.forEach((value, i) => {
+                const angle = (value / total) * 360;
+                const startAngle = currentAngle * Math.PI / 180;
+                const endAngle = (currentAngle + angle) * Math.PI / 180;
+
+                const x1 = centerX + radius * Math.cos(startAngle);
+                const y1 = centerY + radius * Math.sin(startAngle);
+                const x2 = centerX + radius * Math.cos(endAngle);
+                const y2 = centerY + radius * Math.sin(endAngle);
+
+                const largeArc = angle > 180 ? 1 : 0;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`);
+                path.setAttribute('fill', colors[i % colors.length]);
+                path.setAttribute('stroke', 'white');
+                path.setAttribute('stroke-width', '2');
+                svg.appendChild(path);
+
+                const labelAngle = (currentAngle + angle / 2) * Math.PI / 180;
+                const labelX = centerX + (radius * 0.7) * Math.cos(labelAngle);
+                const labelY = centerY + (radius * 0.7) * Math.sin(labelAngle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', labelX);
+                text.setAttribute('y', labelY);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('fill', 'white');
+                text.setAttribute('font-weight', 'bold');
+                text.textContent = `${Math.round((value / total) * 100)}%`;
+                svg.appendChild(text);
+
+                currentAngle += angle;
+            });
+
+            // Add legend
+            const legendX = width * 0.7;
+            let legendY = 50;
+            labels.forEach((label, i) => {
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', legendX);
+                rect.setAttribute('y', legendY + i * 25);
+                rect.setAttribute('width', '15');
+                rect.setAttribute('height', '15');
+                rect.setAttribute('fill', colors[i % colors.length]);
+                svg.appendChild(rect);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', legendX + 20);
+                text.setAttribute('y', legendY + i * 25 + 12);
+                text.setAttribute('font-size', '12');
+                text.textContent = label.substring(0, 10);
+                svg.appendChild(text);
+            });
+
+            container.appendChild(svg);
+        }
+
+        // Create chart card
+        function createChartCard(title, id) {
+            const card = document.createElement('div');
+            card.className = 'chart-card';
+            card.innerHTML = `
+                <h3 class="chart-title">${title}</h3>
+                <div id="${id}" role="img" aria-label="${title}"></div>
+            `;
+            return card;
+        }
+
+        // Display data table
+        function displayDataTable() {
+            if (!csvData) return;
+
+            const content = document.getElementById('csv-content');
+            let existingTable = content.querySelector('.data-table');
+            if (existingTable) {
+                existingTable.parentElement.remove();
+            }
+
+            const filteredData = getFilteredData();
+            const tableContainer = document.createElement('div');
+            tableContainer.setAttribute('role', 'region');
+            tableContainer.setAttribute('aria-label', 'Data table');
+            tableContainer.setAttribute('tabindex', '0');
+
+            const table = document.createElement('table');
+            table.className = 'data-table';
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    ${csvData.headers.map(h => `<th scope="col">${h}</th>`).join('')}
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                csvData.headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = row[header];
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            tableContainer.appendChild(table);
+            content.appendChild(tableContainer);
+        }
+
+        // Clear CSV data
+        function clearCSVData() {
+            csvData = null;
+            currentFilter = '';
+            charts.forEach(chart => chart.destroy());
+            charts = [];
+            document.getElementById('csv-content').innerHTML = `
+                <div class="no-data">
+                    <div class="no-data-icon">📊</div>
+                    <p>No data loaded. Please upload a CSV file to get started.</p>
+                </div>
+            `;
+            document.getElementById('csv-file-input').value = '';
+        }
+
+        // Tree file handling
+        const treeUploadArea = document.getElementById('tree-upload');
+        const treeFileInput = document.getElementById('tree-file-input');
+
+        treeFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleTreeFile(file);
+            }
+        });
+
+        // Drag and drop for tree
+        treeUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            treeUploadArea.classList.add('dragover');
+        });
+
+        treeUploadArea.addEventListener('dragleave', () => {
+            treeUploadArea.classList.remove('dragover');
+        });
+
+        treeUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            treeUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleTreeFile(file);
+            }
+        });
+
+        // Handle tree file
+        function handleTreeFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.json')) {
+                        treeData = JSON.parse(content);
+                        displayTreeData();
+                        showSuccess('JSON file loaded successfully!');
+                    } else if (fileName.endsWith('.xml')) {
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(content, 'text/xml');
+                        treeData = xmlToJson(xmlDoc);
+                        displayTreeData();
+                        showSuccess('XML file loaded successfully!');
+                    } else if (fileName.endsWith('.rdf') || fileName.endsWith('.ttl')) {
+                        treeData = parseRDF(content);
+                        displayTreeData();
+                        showSuccess('RDF file loaded successfully!');
+                    } else {
+                        showError('Unsupported file format');
+                    }
+                } catch (error) {
+                    showError('Error parsing file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Convert XML to JSON
+        function xmlToJson(xml) {
+            const obj = {};
+
+            if (xml.nodeType === 1) {
+                if (xml.attributes.length > 0) {
+                    obj['@attributes'] = {};
+                    for (let j = 0; j < xml.attributes.length; j++) {
+                        const attribute = xml.attributes.item(j);
+                        obj['@attributes'][attribute.nodeName] = attribute.nodeValue;
+                    }
+                }
+            } else if (xml.nodeType === 3) {
+                obj['@text'] = xml.nodeValue;
+            }
+
+            if (xml.hasChildNodes()) {
+                for (let i = 0; i < xml.childNodes.length; i++) {
+                    const item = xml.childNodes.item(i);
+                    const nodeName = item.nodeName;
+
+                    if (typeof obj[nodeName] === 'undefined') {
+                        obj[nodeName] = xmlToJson(item);
+                    } else {
+                        if (typeof obj[nodeName].push === 'undefined') {
+                            const old = obj[nodeName];
+                            obj[nodeName] = [];
+                            obj[nodeName].push(old);
+                        }
+                        obj[nodeName].push(xmlToJson(item));
+                    }
+                }
+            }
+
+            return obj;
+        }
+
+        // Parse RDF (basic Turtle format)
+        function parseRDF(content) {
+            const triples = [];
+            const lines = content.split('\n');
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (line && !line.startsWith('#') && !line.startsWith('@')) {
+                    const parts = line.split(/\s+/);
+                    if (parts.length >= 3) {
+                        triples.push({
+                            subject: parts[0],
+                            predicate: parts[1],
+                            object: parts.slice(2).join(' ').replace(/\.$/, '')
+                        });
+                    }
+                }
+            }
+
+            return { triples };
+        }
+
+        // Display tree data
+        function displayTreeData() {
+            const content = document.getElementById('tree-content');
+            content.innerHTML = '';
+
+            // Add controls
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+            controls.innerHTML = `
+                <button class="export-btn" onclick="exportData('tree')" aria-label="Export tree data">
+                    Export Data
+                </button>
+                <button class="clear-btn" onclick="clearTreeData()" aria-label="Clear tree data">
+                    Clear Data
+                </button>
+                <button class="upload-btn" onclick="expandAllNodes()" aria-label="Expand all tree nodes">
+                    Expand All
+                </button>
+                <button class="upload-btn" onclick="collapseAllNodes()" aria-label="Collapse all tree nodes">
+                    Collapse All
+                </button>
+            `;
+            content.appendChild(controls);
+
+            // Add filter
+            const filterSection = document.createElement('div');
+            filterSection.className = 'filter-section';
+            filterSection.innerHTML = `
+                <div class="filter-group">
+                    <label for="tree-search" class="filter-label">
+                        Search in tree
+                    </label>
+                    <input type="text" 
+                           id="tree-search" 
+                           class="filter-input" 
+                           placeholder="Search nodes..."
+                           oninput="filterTree(this.value)"
+                           aria-label="Search in tree">
+                </div>
+            `;
+            content.appendChild(filterSection);
+
+            // Create tree container
+            const treeContainer = document.createElement('div');
+            treeContainer.className = 'tree-container';
+            treeContainer.id = 'tree-root';
+            treeContainer.setAttribute('role', 'tree');
+            treeContainer.setAttribute('aria-label', 'Data tree structure');
+
+            renderTreeNode(treeData, treeContainer, 'root');
+
+            content.appendChild(treeContainer);
+        }
+
+        // Render tree node
+        function renderTreeNode(data, container, key, level = 0) {
+            if (data === null || data === undefined) {
+                return;
+            }
+
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'tree-node';
+            nodeDiv.setAttribute('data-level', level);
+
+            const label = document.createElement('div');
+            label.className = 'tree-label';
+            label.setAttribute('tabindex', '0');
+            label.setAttribute('role', 'treeitem');
+
+            const isObject = typeof data === 'object' && !Array.isArray(data);
+            const isArray = Array.isArray(data);
+
+            if (isObject || isArray) {
+                label.classList.add('expandable');
+                const childCount = isArray ? data.length : Object.keys(data).length;
+                
+                label.innerHTML = `
+                    <span class="node-name">${key}</span>
+                    <span class="node-type">${isArray ? 'Array' : 'Object'} (${childCount})</span>
+                `;
+
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'tree-children';
+
+                label.addEventListener('click', () => toggleNode(label, childrenDiv));
+                label.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleNode(label, childrenDiv);
+                    }
+                });
+
+                if (isArray) {
+                    data.forEach((item, index) => {
+                        renderTreeNode(item, childrenDiv, `[${index}]`, level + 1);
+                    });
+                } else {
+                    Object.keys(data).forEach(childKey => {
+                        renderTreeNode(data[childKey], childrenDiv, childKey, level + 1);
+                    });
+                }
+
+                nodeDiv.appendChild(label);
+                nodeDiv.appendChild(childrenDiv);
+            } else {
+                label.innerHTML = `
+                    <span class="node-name">${key}:</span>
+                    <span class="node-value">${String(data)}</span>
+                `;
+                nodeDiv.appendChild(label);
+            }
+
+            container.appendChild(nodeDiv);
+        }
+
+        // Toggle tree node
+        function toggleNode(label, childrenDiv) {
+            label.classList.toggle('expanded');
+            childrenDiv.classList.toggle('expanded');
+            
+            const isExpanded = label.classList.contains('expanded');
+            label.setAttribute('aria-expanded', isExpanded);
+        }
+
+        // Expand all nodes
+        function expandAllNodes() {
+            document.querySelectorAll('.tree-label.expandable').forEach(label => {
+                label.classList.add('expanded');
+                label.setAttribute('aria-expanded', 'true');
+            });
+            document.querySelectorAll('.tree-children').forEach(children => {
+                children.classList.add('expanded');
+            });
+        }
+
+        // Collapse all nodes
+        function collapseAllNodes() {
+            document.querySelectorAll('.tree-label.expandable').forEach(label => {
+                label.classList.remove('expanded');
+                label.setAttribute('aria-expanded', 'false');
+            });
+            document.querySelectorAll('.tree-children').forEach(children => {
+                children.classList.remove('expanded');
+            });
+        }
+
+        // Filter tree
+        function filterTree(searchTerm) {
+            const term = searchTerm.toLowerCase();
+            document.querySelectorAll('.tree-node').forEach(node => {
+                const text = node.textContent.toLowerCase();
+                if (text.includes(term) || term === '') {
+                    node.style.display = '';
+                } else {
+                    node.style.display = 'none';
+                }
+            });
+        }
+
+        // Clear tree data
+        function clearTreeData() {
+            treeData = null;
+            document.getElementById('tree-content').innerHTML = `
+                <div class="no-data">
+                    <div class="no-data-icon">🌳</div>
+                    <p>No data loaded. Please upload a JSON, XML, or RDF file to visualize the structure.</p>
+                </div>
+            `;
+            document.getElementById('tree-file-input').value = '';
+        }
+
+        // Export data
+        function exportData(type) {
+            if (type === 'csv' && csvData) {
+                const csv = [
+                    csvData.headers.join(','),
+                    ...csvData.data.map(row => 
+                        csvData.headers.map(h => row[h]).join(',')
+                    )
+                ].join('\n');
+                downloadFile(csv, 'data.csv', 'text/csv');
+            } else if (type === 'tree' && treeData) {
+                const json = JSON.stringify(treeData, null, 2);
+                downloadFile(json, 'data.json', 'application/json');
+            }
+        }
+
+        // Download file
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Show error message
+        function showError(message) {
+            const activeTab = document.querySelector('.tab-content.active');
+            const existingMsg = activeTab.querySelector('.error-message');
+            if (existingMsg) existingMsg.remove();
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.setAttribute('role', 'alert');
+            errorDiv.textContent = message;
+            activeTab.insertBefore(errorDiv, activeTab.firstChild);
+
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const activeTab = document.querySelector('.tab-content.active');
+            const existingMsg = activeTab.querySelector('.success-message');
+            if (existingMsg) existingMsg.remove();
+
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.setAttribute('role', 'status');
+            successDiv.textContent = message;
+            activeTab.insertBefore(successDiv, activeTab.firstChild);
+
+            setTimeout(() => successDiv.remove(), 3000);
+        }
+
+        // Keyboard navigation for tabs
+        document.querySelectorAll('.tab').forEach((tab, index, tabs) => {
+            tab.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    const nextTab = tabs[(index + 1) % tabs.length];
+                    nextTab.click();
+                    nextTab.focus();
+                } else if (e.key === 'ArrowLeft') {
+                    const prevTab = tabs[(index - 1 + tabs.length) % tabs.length];
+                    prevTab.click();
+                    prevTab.focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
