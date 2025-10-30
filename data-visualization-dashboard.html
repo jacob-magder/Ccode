@@ -611,16 +611,38 @@
             }
         });
 
-        // Parse CSV
+        // Parse CSV - handles quoted fields with commas
         function parseCSV(text) {
             const lines = text.split('\n').filter(line => line.trim());
             if (lines.length < 2) return null;
 
-            const headers = lines[0].split(',').map(h => h.trim());
+            // Parse CSV line respecting quotes
+            function parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            }
+
+            const headers = parseCSVLine(lines[0]);
             const data = [];
 
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',').map(v => v.trim());
+                const values = parseCSVLine(lines[i]);
                 const row = {};
                 headers.forEach((header, index) => {
                     row[header] = values[index] || '';
@@ -824,7 +846,10 @@
 
             const filteredData = getFilteredData();
             const numericColumns = csvData.headers.filter(header => {
-                return filteredData.every(row => !isNaN(parseFloat(row[header])));
+                return filteredData.every(row => {
+                    const val = row[header];
+                    return val !== '' && val !== null && val !== undefined && !isNaN(parseFloat(val));
+                });
             });
 
             // Append charts container to content first
@@ -884,7 +909,7 @@
             const barWidth = (width - 2 * padding) / values.length;
 
             values.forEach((value, i) => {
-                const barHeight = ((height - 2 * padding) * value) / maxValue;
+                const barHeight = maxValue > 0 ? ((height - 2 * padding) * value) / maxValue : 0;
                 const x = padding + i * barWidth;
                 const y = height - padding - barHeight;
 
@@ -933,13 +958,13 @@
             svg.setAttribute('height', height);
             svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-            const stepX = (width - 2 * padding) / (values.length - 1);
+            const stepX = (width - 2 * padding) / Math.max(values.length - 1, 1);
             const rangeY = maxValue - minValue || 1;
 
             let pathData = '';
             values.forEach((value, i) => {
                 const x = padding + i * stepX;
-                const y = height - padding - ((value - minValue) / rangeY) * (height - 2 * padding);
+                const y = rangeY > 0 ? height - padding - ((value - minValue) / rangeY) * (height - 2 * padding) : height - padding;
                 
                 if (i === 0) {
                     pathData += `M ${x} ${y}`;
@@ -1194,23 +1219,31 @@
                     }
                 }
             } else if (xml.nodeType === 3) {
-                obj['@text'] = xml.nodeValue;
+                // Only include text nodes that are not just whitespace
+                const text = xml.nodeValue.trim();
+                if (text) {
+                    obj['@text'] = text;
+                }
             }
 
             if (xml.hasChildNodes()) {
                 for (let i = 0; i < xml.childNodes.length; i++) {
                     const item = xml.childNodes.item(i);
                     const nodeName = item.nodeName;
+                    const childObj = xmlToJson(item);
+
+                    // Skip empty objects
+                    if (Object.keys(childObj).length === 0) continue;
 
                     if (typeof obj[nodeName] === 'undefined') {
-                        obj[nodeName] = xmlToJson(item);
+                        obj[nodeName] = childObj;
                     } else {
                         if (typeof obj[nodeName].push === 'undefined') {
                             const old = obj[nodeName];
                             obj[nodeName] = [];
                             obj[nodeName].push(old);
                         }
-                        obj[nodeName].push(xmlToJson(item));
+                        obj[nodeName].push(childObj);
                     }
                 }
             }
@@ -1219,6 +1252,13 @@
         }
 
         // Parse RDF (basic Turtle format)
+        // Note: This is a simplified parser for basic RDF/Turtle files
+        // It handles simple triples but doesn't support all Turtle features like:
+        // - Quoted literals with spaces or special characters
+        // - URIs in angle brackets
+        // - Language tags and datatypes
+        // - Blank nodes and collections
+        // For production use, consider a proper RDF parsing library
         function parseRDF(content) {
             const triples = [];
             const lines = content.split('\n');
